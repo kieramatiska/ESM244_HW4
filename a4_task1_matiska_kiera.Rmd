@@ -1,0 +1,78 @@
+---
+title: "Untitled"
+author: "Kiera Matiska"
+date: "2/26/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# attach packages
+library(tidyverse)
+library(here)
+library(maptools)
+library(sf)
+library(tmap)
+library(tmaptools)
+library(janitor)
+```
+
+# Read in data
+
+#### Oil Spills
+
+```{r}
+oil_spills_sf <- read_sf(here("data/ds394/ds394.shp")) %>% 
+  clean_names() %>% 
+  st_transform(3310)
+
+st_crs(oil_spills_sf)
+```
+
+#### California counties
+
+```{r}
+ca_counties <- read_sf(here("data/CA_Counties/CA_Counties_TIGER2016.shp")) %>% 
+  clean_names() %>% 
+  st_transform(3310)
+
+st_crs(ca_counties)
+```
+
+# Create a map of oil spills in CA using tmap
+
+```{r}
+tmap_mode(mode = "view")
+tmap_options(check.and.fix = TRUE,
+             max.categories = 58)
+
+tm_shape(ca_counties) +
+  tm_fill("namelsad", legend.show = FALSE, popup.vars = c("County:" = "namelsad")) +
+  tm_borders(col = "black") +
+tm_shape(oil_spills_sf) +
+  tm_dots(popup.vars = c("Control Number:" = "oesnumber", 
+                         "Date:" = "dateofinci", 
+                         "Time:" = "timeofinci", 
+                         "County:" = "localecoun", 
+                         "City:" = "localecity", 
+                         "Type of Water:" = "specificlo",
+                         "Inland or Marine:" = "inlandmari"),
+          size = 0.02)
+```
+
+# Create a choropleth map of oil spills in CA using tmap
+
+
+
+
+
+
+
+
+
+
+
+
+
+
