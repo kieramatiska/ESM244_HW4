@@ -48,7 +48,9 @@ tmap_options(check.and.fix = TRUE,
              max.categories = 58)
 
 tm_shape(ca_counties) +
-  tm_fill("namelsad", legend.show = FALSE, popup.vars = c("County:" = "namelsad")) +
+  tm_fill("aland", 
+          palette = "BuGn", 
+          popup.vars = c("County:" = "namelsad")) +
   tm_borders(col = "black") +
 tm_shape(oil_spills_sf) +
   tm_dots(popup.vars = c("Control Number:" = "oesnumber", 
