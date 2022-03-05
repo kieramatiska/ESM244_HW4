@@ -1,0 +1,35 @@
+---
+title: "Untitled"
+author: "Kiera Matiska"
+date: "3/5/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# attach packages
+library(tidyverse)
+library(here)
+library(broom)
+library(janitor)
+library(lubridate)
+library(tsibble)
+library(feasts)
+library(fable)
+```
+
+## Read in Data
+
+```{r}
+fish <- read_csv(here("data", "willamette_fish_passage.csv")) %>% 
+  clean_names()
+
+fish_ts <- fish %>% 
+  mutate(date = mdy(date)) %>% 
+  as_tsibble(key = NULL, index = date)
+```
+
+## Exploratory time series visualization
+
+
