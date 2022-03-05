@@ -65,7 +65,20 @@ tm_shape(oil_spills_sf) +
 
 # Create a choropleth map of oil spills in CA using tmap
 
+Merge data sets
 
+```{r}
+ca_oil <- ca_counties %>% 
+  st_join(oil_spills_sf) %>% 
+  select(latitude, longitude, namelsad) %>% 
+  group_by(namelsad) %>% 
+  summarize(oil_spills = n())
+```
+
+```{r}
+ggplot(data = ca_oil) +
+  geom_polygon(aes(fill = oil_spills))
+```
 
 
 
