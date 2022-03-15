@@ -2,11 +2,13 @@
 title: "Hamilton Text Analysis"
 author: "Kiera Matiska"
 date: "3/14/2022"
-output: html_document
+output: 
+  html_document:
+    code_folding: hide
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+```{r setup, include=TRUE, message = FALSE, warning = FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 
 # attach packages
 library(tidyverse)
@@ -15,6 +17,7 @@ library(tidytext)
 library(textdata)
 library(pdftools)
 library(ggwordcloud)
+library(kableExtra)
 ```
 
 ## Get the lyrics for Act 1 and Act 2
@@ -25,7 +28,7 @@ ham_act1 <- pdf_text(here("data", "hamilton_act1.pdf"))
 ham_act2 <- pdf_text(here("data", "hamilton_act2.pdf"))
 ```
 
-Convert text to a dataframe
+## Convert text to a dataframe
 
 ```{r}
 act1_lines <- data.frame(ham_act1) %>% 
@@ -80,7 +83,7 @@ act2_wordcount <- words_act2 %>%
 ## Remove Stop Words
 
 ```{r}
-head(stop_words)
+# head(stop_words)
 
 words_act1_clean <- words_act1 %>% 
   anti_join(stop_words, by = "word")
@@ -97,33 +100,213 @@ act2_nonstop_counts <- words_act2_clean %>%
   count(song, word)
 ```
 
-## Find top 5 words from each song in each Act
+## Find top 5 words from each song in each Act {.tabset .tabset-fade}
 
 ```{r}
-act1_top5_words <- act1_nonstop_counts %>% 
-  group_by(song) %>% 
-  arrange(-n) %>% 
-  slice(1:5) %>% 
+act1_top5_words <- act1_nonstop_counts %>%
+  group_by(song) %>%
+  arrange(-n) %>%
+  slice(1:5) %>%
   ungroup()
 
-act2_top5_words <- act2_nonstop_counts %>% 
-  group_by(song) %>% 
-  arrange(-n) %>% 
-  slice(1:5) %>% 
+act2_top5_words <- act2_nonstop_counts %>%
+  group_by(song) %>%
+  arrange(-n) %>%
+  slice(1:5) %>%
   ungroup()
+```
 
-ggplot(data = act1_top5_words,
-       aes(x = n, y = word)) +
-  geom_col(fill = "blue") +
-  facet_wrap(~song, scales = "free")
+### Act 1 {.tabset .tabset-fade}
 
-ggplot(data = act2_top5_words,
+#### Songs 1-5
+
+```{r}
+act1_1_5 <- act1_top5_words %>% 
+  filter(song %in% c("1", "2", "3", "4", "5")) %>% 
+  mutate(song = case_when(
+    song == "1" ~ "Alexander Hamilton",
+    song == "2" ~ "Aaron Burr, Sir",
+    song == "3" ~ "My Shot",
+    song == "4" ~ "The Story of Tonight",
+    song == "5" ~ "The Schuyler Sisters"
+  ))
+
+ggplot(data = act1_1_5,
        aes(x = n, y = word)) +
-  geom_col(fill = "blue") +
+  geom_col() +
   facet_wrap(~song, scales = "free")
 ```
 
-## Word clouds of top 100 words in each act
+#### Songs 6-10
+
+```{r}
+act1_6_10 <- act1_top5_words %>% 
+  filter(song %in% c("6", "7", "8", "9", "10")) %>% 
+  mutate(song = case_when(
+    song == "6" ~ "Farmer Refuted",
+    song == "7" ~ "You'll Be Back",
+    song == "8" ~ "Right Hand Man",
+    song == "9" ~ "A Winter's Ball",
+    song == "10" ~ "Helpless"
+  ))
+
+ggplot(data = act1_6_10,
+       aes(x = n, y = word)) +
+  geom_col() +
+  facet_wrap(~song, scales = "free")
+```
+
+#### Songs 11-15
+
+```{r}
+act1_11_15 <- act1_top5_words %>% 
+  filter(song %in% c("11", "12", "13", "14", "15")) %>% 
+  mutate(song = case_when(
+    song == "11" ~ "Satisfied",
+    song == "12" ~ "The Story of \nTonight (Reprise)",
+    song == "13" ~ "Wait for It",
+    song == "14" ~ "Stay Alive",
+    song == "15" ~ "Ten Duel \nCommandments"
+  ))
+
+ggplot(data = act1_11_15,
+       aes(x = n, y = word)) +
+  geom_col() +
+  facet_wrap(~song, scales = "free")
+```
+
+#### Songs 16-20
+
+```{r}
+act1_16_20 <- act1_top5_words %>% 
+  filter(song %in% c("16", "17", "18", "19", "20")) %>% 
+  mutate(song = case_when(
+    song == "16" ~ "Meet Me Inside",
+    song == "17" ~ "That Would Be Enough",
+    song == "18" ~ "Guns and Ships",
+    song == "19" ~ "History Has Its \nEyes on You",
+    song == "20" ~ "Yorktown (The World \nTurned Upside Down)"
+  ))
+
+ggplot(data = act1_16_20,
+       aes(x = n, y = word)) +
+  geom_col() +
+  facet_wrap(~song, scales = "free")
+```
+
+#### Songs 21-23
+
+```{r}
+act1_21_23 <- act1_top5_words %>% 
+  filter(song %in% c("21", "22", "23")) %>% 
+  mutate(song = case_when(
+    song == "21" ~ "What Comes Next?",
+    song == "22" ~ "Dear Theodosia",
+    song == "23" ~ "Non-Stop"
+  ))
+
+ggplot(data = act1_21_23,
+       aes(x = n, y = word)) +
+  geom_col() +
+  facet_wrap(~song, scales = "free")
+```
+
+### Act 2 {.tabset .tabset-fade}
+
+#### Songs 1-5
+
+```{r}
+act2_1_5 <- act2_top5_words %>% 
+  filter(song %in% c("1", "2", "3", "4", "5")) %>% 
+  mutate(song = case_when(
+    song == "1" ~ "What'd I Miss",
+    song == "2" ~ "Cabinet Battle #1",
+    song == "3" ~ "Take a Break",
+    song == "4" ~ "Say No to This",
+    song == "5" ~ "The Room Where \nIt Happens"
+  ))
+
+ggplot(data = act2_1_5,
+       aes(x = n, y = word)) +
+  geom_col() +
+  facet_wrap(~song, scales = "free")
+```
+
+#### Songs 6-10
+
+```{r}
+act2_6_10 <- act2_top5_words %>% 
+  filter(song %in% c("6", "7", "8", "9", "10")) %>% 
+  mutate(song = case_when(
+    song == "6" ~ "Schuyler Defeated",
+    song == "7" ~ "Cabinet Battle #2",
+    song == "8" ~ "Washington on Your Side",
+    song == "9" ~ "One Last Time",
+    song == "10" ~ "I Know Him"
+  ))
+
+ggplot(data = act2_6_10,
+       aes(x = n, y = word)) +
+  geom_col() +
+  facet_wrap(~song, scales = "free")
+```
+
+#### Songs 11-15
+
+```{r}
+act2_11_15 <- act2_top5_words %>% 
+  filter(song %in% c("11", "12", "13", "14", "15")) %>% 
+  mutate(song = case_when(
+    song == "11" ~ "The Adams Administration",
+    song == "12" ~ "We Know",
+    song == "13" ~ "Hurricane",
+    song == "14" ~ "The Reynolds Pamphlet",
+    song == "15" ~ "Burn"
+  ))
+
+ggplot(data = act2_11_15,
+       aes(x = n, y = word)) +
+  geom_col() +
+  facet_wrap(~song, scales = "free")
+```
+
+#### Songs 16-20
+
+```{r}
+act2_16_20 <- act2_top5_words %>% 
+  filter(song %in% c("16", "17", "18", "19", "20")) %>% 
+  mutate(song = case_when(
+    song == "16" ~ "Blow Us All Away",
+    song == "17" ~ "Stay Alive - Reprise",
+    song == "18" ~ "It's Quiet Uptown",
+    song == "19" ~ "The Election of 1800",
+    song == "20" ~ "Your Obedient Servant"
+  ))
+
+ggplot(data = act2_16_20,
+       aes(x = n, y = word)) +
+  geom_col() +
+  facet_wrap(~song, scales = "free")
+```
+
+#### Songs 21-23
+
+```{r}
+act2_21_23 <- act2_top5_words %>% 
+  filter(song %in% c("21", "22", "23")) %>% 
+  mutate(song = case_when(
+    song == "21" ~ "Best of Wives and \nBest of Women",
+    song == "22" ~ "The World Was Wide Enough",
+    song == "23" ~ "Who Lives, Who Dies, \n Who Tells Your Story"
+  ))
+
+ggplot(data = act2_21_23,
+       aes(x = n, y = word)) +
+  geom_col() +
+  facet_wrap(~song, scales = "free")
+```
+
+## Word clouds of top 100 words in each act {.tabset .tabset-fade}
 
 ```{r}
 act1_top100 <- act1_nonstop_counts %>% 
@@ -135,61 +318,151 @@ act2_top100 <- act2_nonstop_counts %>%
   slice(1:100)
 ```
 
+###  Act 1
+
 ```{r}
 act1_cloud <- ggplot(data = act1_top100,
                      aes(label = word)) +
   geom_text_wordcloud(aes(color = n, size = n),
-                      shape = "diamond") +
-  scale_size_area(max_size = 6) +
+                      shape = "pentagon",
+                      eccentricity = 0.4) +
+  scale_size_area(max_size = 9) +
   scale_color_gradientn(colors = c("darkgreen", "blue", "purple")) +
   theme_minimal()
 
 act1_cloud
+```
 
+### Act 2
+
+```{r}
 act2_cloud <- ggplot(data = act2_top100,
                      aes(label = word)) +
   geom_text_wordcloud(aes(color = n, size = n),
-                      shape = "diamond") +
+                      shape = "pentagon") +
   scale_color_gradientn(colors = c("darkgreen", "blue", "purple")) +
+  scale_size_area(max_size = 6) +
   theme_minimal()
 
 act2_cloud
 ```
 
-## Sentiment Analysis with "afinn"
+## Sentiment Analysis {.tabset .tabset-fade}
+
+### "afinn" Lexicon {.tabset .tabset-fade}
+
+#### Act 1 {.tabset .tabset-fade}
 
 ```{r}
 act1_afinn <- words_act1_clean %>% 
   inner_join(get_sentiments("afinn"), by = "word")
 
-act2_afinn <- words_act2_clean %>% 
-  inner_join(get_sentiments("afinn"), by = "word")
-
-# get counts from each act
-
 act1_afinn_counts <- act1_afinn %>% 
   count(song, value)
+```
 
-act2_afinn_counts <- act2_afinn %>% 
-  count(song, value)
+##### Songs 1-5
 
-# plot sentiments:
-ggplot(data = act1_afinn_counts,
+```{r}
+act1_afinn_1_5 <- act1_afinn %>% 
+  count(song, value) %>% 
+  filter(song %in% c("1", "2", "3", "4", "5")) %>% 
+  mutate(song = case_when(
+    song == "1" ~ "Alexander Hamilton",
+    song == "2" ~ "Aaron Burr, Sir",
+    song == "3" ~ "My Shot",
+    song == "4" ~ "The Story of Tonight",
+    song == "5" ~ "The Schuyler Sisters"
+  ))
+
+ggplot(data = act1_afinn_1_5,
        aes(x = value, y = n)) +
   geom_col() +
   facet_wrap(~song)
+```
 
-ggplot(data = act2_afinn_counts,
+##### Songs 6-10
+
+```{r}
+act1_afinn_6_10 <- act1_afinn %>% 
+  count(song, value) %>% 
+  filter(song %in% c("6", "7", "8", "9", "10")) %>% 
+  mutate(song = case_when(
+    song == "6" ~ "Farmer Refuted",
+    song == "7" ~ "You'll Be Back",
+    song == "8" ~ "Right Hand Man",
+    song == "9" ~ "A Winter's Ball",
+    song == "10" ~ "Helpless"
+  ))
+
+ggplot(data = act1_afinn_6_10,
        aes(x = value, y = n)) +
   geom_col() +
   facet_wrap(~song)
+```
 
-# find mean afinn score by song per act and plot them
+##### Songs 11-15
+
+```{r}
+act1_afinn_11_15 <- act1_afinn %>% 
+  count(song, value) %>% 
+  filter(song %in% c("11", "12", "13", "14", "15")) %>% 
+  mutate(song = case_when(
+    song == "11" ~ "Satisfied",
+    song == "12" ~ "The Story of \nTonight (Reprise)",
+    song == "13" ~ "Wait for It",
+    song == "14" ~ "Stay Alive",
+    song == "15" ~ "Ten Duel \nCommandments"
+  ))
+
+ggplot(data = act1_afinn_11_15,
+       aes(x = value, y = n)) +
+  geom_col() +
+  facet_wrap(~song)
+```
+
+##### Songs 16 - 20
+
+```{r}
+act1_afinn_16_20 <- act1_afinn %>% 
+  count(song, value) %>% 
+  filter(song %in% c("16", "17", "18", "19", "20")) %>% 
+  mutate(song = case_when(
+    song == "16" ~ "Meet Me Inside",
+    song == "17" ~ "That Would Be Enough",
+    song == "18" ~ "Guns and Ships",
+    song == "19" ~ "History Has Its \nEyes on You",
+    song == "20" ~ "Yorktown (The World \nTurned Upside Down)"
+  ))
+
+ggplot(data = act1_afinn_16_20,
+       aes(x = value, y = n)) +
+  geom_col() +
+  facet_wrap(~song)
+```
+
+##### Songs 21-23
+
+```{r}
+act1_afinn_21_23 <- act1_afinn %>% 
+  count(song, value) %>% 
+  filter(song %in% c("21", "22", "23")) %>% 
+  mutate(song = case_when(
+    song == "21" ~ "What Comes Next?",
+    song == "22" ~ "Dear Theodosia",
+    song == "23" ~ "Non-Stop"
+  ))
+
+ggplot(data = act1_afinn_21_23,
+       aes(x = value, y = n)) +
+  geom_col() +
+  facet_wrap(~song)
+```
+
+##### Mean
+
+```{r}
 act1_afinn_means <- act1_afinn %>% 
-  group_by(song) %>% 
-  summarize(mean_afinn = mean(value))
-
-act2_afinn_means <- act2_afinn %>% 
   group_by(song) %>% 
   summarize(mean_afinn = mean(value))
 
@@ -198,29 +471,140 @@ ggplot(data = act1_afinn_means,
            y = mean_afinn)) +
   geom_col() +
   coord_flip()
+```
+
+#### Act 2 {.tabset .tabset-fade}
+
+```{r}
+act2_afinn <- words_act2_clean %>% 
+  inner_join(get_sentiments("afinn"), by = "word")
+
+act2_afinn_counts <- act2_afinn %>% 
+  count(song, value)
+```
+
+##### Songs 1-5
+
+```{r}
+act2_afinn_1_5 <- act2_afinn %>% 
+  count(song, value) %>% 
+  filter(song %in% c("1", "2", "3", "4", "5")) %>% 
+  mutate(song = case_when(
+    song == "1" ~ "What'd I Miss",
+    song == "2" ~ "Cabinet Battle #1",
+    song == "3" ~ "Take a Break",
+    song == "4" ~ "Say No to This",
+    song == "5" ~ "The Room Where \nIt Happens"
+  ))
+
+ggplot(data = act2_afinn_1_5,
+       aes(x = value, y = n)) +
+  geom_col() +
+  facet_wrap(~song)
+```
+
+##### Songs 6-10
+
+```{r}
+act2_afinn_6_10 <- act2_afinn %>% 
+  count(song, value) %>% 
+  filter(song %in% c("6", "7", "8", "9", "10")) %>% 
+  mutate(song = case_when(
+    song == "6" ~ "Schuyler Defeated",
+    song == "7" ~ "Cabinet Battle #2",
+    song == "8" ~ "Washington on Your Side",
+    song == "9" ~ "One Last Time",
+    song == "10" ~ "I Know Him"
+  ))
+
+ggplot(data = act2_afinn_6_10,
+       aes(x = value, y = n)) +
+  geom_col() +
+  facet_wrap(~song)
+```
+
+##### Songs 11-15
+
+```{r}
+act2_afinn_11_15 <- act2_afinn %>% 
+  count(song, value) %>% 
+  filter(song %in% c("11", "12", "13", "14", "15")) %>% 
+  mutate(song = case_when(
+    song == "11" ~ "The Adams Administration",
+    song == "12" ~ "We Know",
+    song == "13" ~ "Hurricane",
+    song == "14" ~ "The Reynolds Pamphlet",
+    song == "15" ~ "Burn"
+  ))
+
+ggplot(data = act2_afinn_11_15,
+       aes(x = value, y = n)) +
+  geom_col() +
+  facet_wrap(~song)
+```
+
+##### Songs 16 - 20
+
+```{r}
+act2_afinn_16_20 <- act2_afinn %>% 
+  count(song, value) %>% 
+  filter(song %in% c("16", "17", "18", "19", "20")) %>% 
+  mutate(song = case_when(
+    song == "16" ~ "Blow Us All Away",
+    song == "17" ~ "Stay Alive - Reprise",
+    song == "18" ~ "It's Quiet Uptown",
+    song == "19" ~ "The Election of 1800",
+    song == "20" ~ "Your Obedient Servant"
+  ))
+
+ggplot(data = act2_afinn_16_20,
+       aes(x = value, y = n)) +
+  geom_col() +
+  facet_wrap(~song)
+```
+
+##### Songs 21-23
+
+```{r}
+act2_afinn_21_23 <- act2_afinn %>% 
+  count(song, value) %>% 
+  filter(song %in% c("21", "22", "23")) %>% 
+  mutate(song = case_when(
+    song == "21" ~ "Best of Wives and \nBest of Women",
+    song == "22" ~ "The World Was Wide Enough",
+    song == "23" ~ "Who Lives, Who Dies, \n Who Tells Your Story"
+  ))
+
+ggplot(data = act2_afinn_21_23,
+       aes(x = value, y = n)) +
+  geom_col() +
+  facet_wrap(~song)
+```
+
+##### Mean
+
+```{r}
+act2_afinn_means <- act2_afinn %>% 
+  group_by(song) %>% 
+  summarize(mean_afinn = mean(value))
 
 ggplot(data = act2_afinn_means,
        aes(fct_rev(factor(song)),
-           y = mean_afinn)) +
+           y = mean_afinn,
+           fill = mean_afinn)) +
   geom_col() +
   coord_flip()
 ```
 
-## Sentiment Analysis with "NRC" lexicon
+### "NRC" lexicon {.tabset .tabset-fade}
+
+#### Act 1 {.tabset .tabset-fade}
 
 ```{r}
 act1_nrc <- words_act1_clean %>% 
   inner_join(get_sentiments("nrc"))
 
-act2_nrc <- words_act2_clean %>% 
-  inner_join(get_sentiments("nrc"))
-```
-
-```{r}
 act1_nrc_counts <- act1_nrc %>% 
-  count(song, sentiment)
-
-act2_nrc_counts <- act2_nrc %>% 
   count(song, sentiment)
 
 ggplot(data = act1_nrc_counts,
@@ -228,6 +612,119 @@ ggplot(data = act1_nrc_counts,
   geom_col() +
   facet_wrap(~song) +
   coord_flip()
+```
+
+##### Songs 1-5
+
+```{r}
+act1_nrc_1_5 <- act1_nrc %>% 
+  count(song, sentiment) %>% 
+  filter(song %in% c("1", "2", "3", "4", "5")) %>% 
+  mutate(song = case_when(
+    song == "1" ~ "Alexander Hamilton",
+    song == "2" ~ "Aaron Burr, Sir",
+    song == "3" ~ "My Shot",
+    song == "4" ~ "The Story of Tonight",
+    song == "5" ~ "The Schuyler Sisters"
+  ))
+  
+ggplot(data = act1_nrc_1_5,
+       aes(x = sentiment, y = n)) +
+  geom_col() +
+  facet_wrap(~song) +
+  coord_flip()
+```
+
+##### Songs 6-10
+
+```{r}
+act1_nrc_6_10 <- act1_nrc %>% 
+  count(song, sentiment) %>% 
+  filter(song %in% c("6", "7", "8", "9", "10")) %>% 
+  mutate(song = case_when(
+    song == "6" ~ "Farmer Refuted",
+    song == "7" ~ "You'll Be Back",
+    song == "8" ~ "Right Hand Man",
+    song == "9" ~ "A Winter's Ball",
+    song == "10" ~ "Helpless"
+  ))
+  
+ggplot(data = act1_nrc_6_10,
+       aes(x = sentiment, y = n)) +
+  geom_col() +
+  facet_wrap(~song) +
+  coord_flip()
+```
+
+##### Songs 11-15
+
+```{r}
+act1_nrc_11_15 <- act1_nrc %>% 
+  count(song, sentiment) %>% 
+  filter(song %in% c("11", "12", "13", "14", "15")) %>% 
+  mutate(song = case_when(
+    song == "11" ~ "Satisfied",
+    song == "12" ~ "The Story of \nTonight (Reprise)",
+    song == "13" ~ "Wait for It",
+    song == "14" ~ "Stay Alive",
+    song == "15" ~ "Ten Duel \nCommandments"
+  ))
+  
+ggplot(data = act1_nrc_11_15,
+       aes(x = sentiment, y = n)) +
+  geom_col() +
+  facet_wrap(~song) +
+  coord_flip()
+```
+
+##### Songs 16-20
+
+```{r}
+act1_nrc_16_20 <- act1_nrc %>% 
+  count(song, sentiment) %>% 
+  filter(song %in% c("16", "17", "18", "19", "20")) %>% 
+  mutate(song = case_when(
+    song == "16" ~ "Meet Me Inside",
+    song == "17" ~ "That Would Be Enough",
+    song == "18" ~ "Guns and Ships",
+    song == "19" ~ "History Has Its \nEyes on You",
+    song == "20" ~ "Yorktown (The World \nTurned Upside Down)"
+  ))
+  
+ggplot(data = act1_nrc_16_20,
+       aes(x = sentiment, y = n)) +
+  geom_col() +
+  facet_wrap(~song) +
+  coord_flip()
+```
+
+##### Songs 21-23
+
+```{r}
+act1_nrc_21_23 <- act1_nrc %>% 
+  count(song, sentiment) %>% 
+  filter(song %in% c("21", "22", "23")) %>% 
+  mutate(song = case_when(
+    song == "21" ~ "What Comes Next?",
+    song == "22" ~ "Dear Theodosia",
+    song == "23" ~ "Non-Stop"
+  ))
+  
+ggplot(data = act1_nrc_21_23,
+       aes(x = sentiment, y = n)) +
+  geom_col() +
+  facet_wrap(~song) +
+  coord_flip()
+```
+
+#### Act 2 {.tabset .tabset-fade}
+
+```{r}
+act2_nrc <- words_act2_clean %>% 
+  inner_join(get_sentiments("nrc"))
+
+act2_nrc_counts <- act2_nrc %>% 
+  count(song, sentiment)
 
 ggplot(data = act2_nrc_counts,
        aes(x = sentiment, y = n)) +
@@ -236,6 +733,108 @@ ggplot(data = act2_nrc_counts,
   coord_flip()
 ```
 
+##### Songs 1-5
+
+```{r}
+act2_nrc_1_5 <- act2_nrc %>% 
+  count(song, sentiment) %>% 
+  filter(song %in% c("1", "2", "3", "4", "5")) %>% 
+  mutate(song = case_when(
+    song == "1" ~ "What'd I Miss",
+    song == "2" ~ "Cabinet Battle #1",
+    song == "3" ~ "Take a Break",
+    song == "4" ~ "Say No to This",
+    song == "5" ~ "The Room Where \nIt Happens"
+  ))
+  
+ggplot(data = act2_nrc_1_5,
+       aes(x = sentiment, y = n)) +
+  geom_col() +
+  facet_wrap(~song) +
+  coord_flip()
+```
+
+##### Songs 6-10
+
+```{r}
+act2_nrc_6_10 <- act2_nrc %>% 
+  count(song, sentiment) %>% 
+  filter(song %in% c("6", "7", "8", "9", "10")) %>% 
+  mutate(song = case_when(
+    song == "6" ~ "Schuyler Defeated",
+    song == "7" ~ "Cabinet Battle #2",
+    song == "8" ~ "Washington on Your Side",
+    song == "9" ~ "One Last Time",
+    song == "10" ~ "I Know Him"
+  ))
+  
+ggplot(data = act2_nrc_6_10,
+       aes(x = sentiment, y = n)) +
+  geom_col() +
+  facet_wrap(~song) +
+  coord_flip()
+```
+
+##### Songs 11-15
+
+```{r}
+act2_nrc_11_15 <- act2_nrc %>% 
+  count(song, sentiment) %>% 
+  filter(song %in% c("11", "12", "13", "14", "15")) %>% 
+  mutate(song = case_when(
+    song == "11" ~ "The Adams Administration",
+    song == "12" ~ "We Know",
+    song == "13" ~ "Hurricane",
+    song == "14" ~ "The Reynolds Pamphlet",
+    song == "15" ~ "Burn"
+  ))
+  
+ggplot(data = act2_nrc_11_15,
+       aes(x = sentiment, y = n)) +
+  geom_col() +
+  facet_wrap(~song) +
+  coord_flip()
+```
+
+##### Songs 16-20
+
+```{r}
+act2_nrc_16_20 <- act2_nrc %>% 
+  count(song, sentiment) %>% 
+  filter(song %in% c("16", "17", "18", "19", "20")) %>% 
+  mutate(song = case_when(
+    song == "16" ~ "Blow Us All Away",
+    song == "17" ~ "Stay Alive - Reprise",
+    song == "18" ~ "It's Quiet Uptown",
+    song == "19" ~ "The Election of 1800",
+    song == "20" ~ "Your Obedient Servant"
+  ))
+  
+ggplot(data = act2_nrc_16_20,
+       aes(x = sentiment, y = n)) +
+  geom_col() +
+  facet_wrap(~song) +
+  coord_flip()
+```
+
+##### Songs 21-23
+
+```{r}
+act2_nrc_21_23 <- act2_nrc %>% 
+  count(song, sentiment) %>% 
+  filter(song %in% c("21", "22", "23")) %>% 
+  mutate(song = case_when(
+    song == "21" ~ "Best of Wives and \nBest of Women",
+    song == "22" ~ "The World Was Wide Enough",
+    song == "23" ~ "Who Lives, Who Dies, \n Who Tells Your Story"
+  ))
+  
+ggplot(data = act2_nrc_21_23,
+       aes(x = sentiment, y = n)) +
+  geom_col() +
+  facet_wrap(~song) +
+  coord_flip()
+```
 
 
 
