@@ -1,0 +1,253 @@
+---
+title: "Hamilton Text Analysis"
+author: "Kiera Matiska"
+date: "3/14/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# attach packages
+library(tidyverse)
+library(here)
+library(tidytext)
+library(textdata)
+library(pdftools)
+library(ggwordcloud)
+```
+
+## Get the lyrics for Act 1 and Act 2
+
+```{r, cache = TRUE}
+ham_act1 <- pdf_text(here("data", "hamilton_act1.pdf"))
+
+ham_act2 <- pdf_text(here("data", "hamilton_act2.pdf"))
+```
+
+Convert text to a dataframe
+
+```{r}
+act1_lines <- data.frame(ham_act1) %>% 
+  mutate(page = 1:n()) %>% 
+  mutate(text_act1 = str_split(ham_act1, pattern = "\\n")) %>% 
+  unnest(text_act1) %>% 
+  mutate(text_act1 = str_trim(text_act1))
+
+act2_lines <- data.frame(ham_act2) %>% 
+  mutate(page = 1:n()) %>% 
+  mutate(text_act2 = str_split(ham_act2, pattern = "\\n")) %>% 
+  unnest(text_act2) %>% 
+  mutate(text_act2 = str_trim(text_act2))
+```
+
+## Do some tidying
+
+```{r}
+tunes_act1 <- act1_lines %>% 
+  mutate(song = ifelse(str_detect(text_act1, "Song"), text_act1, NA)) %>% 
+  fill(song, .direction = "down") %>% 
+  separate(col = song, into = c("so", "no"), sep = " ") %>% 
+  mutate(song = as.numeric(as.roman(no)))
+
+tunes_act2 <- act2_lines %>% 
+  mutate(song = ifelse(str_detect(text_act2, "Song"), text_act2, NA)) %>% 
+  fill(song, .direction = "down") %>% 
+  separate(col = song, into = c("so", "no"), sep = " ") %>% 
+  mutate(song = as.numeric(as.roman(no)))
+```
+
+## Find word count per act by song
+
+```{r}
+words_act1 <- tunes_act1 %>% 
+  unnest_tokens(word, text_act1) %>% 
+  select(-ham_act1)
+  
+words_act2 <- tunes_act2 %>% 
+  unnest_tokens(word, text_act2) %>% 
+  select(-ham_act2)
+```
+
+```{r}
+act1_wordcount <- words_act1 %>% 
+  count(song, word)
+
+act2_wordcount <- words_act2 %>% 
+  count(song, word)
+```
+
+## Remove Stop Words
+
+```{r}
+head(stop_words)
+
+words_act1_clean <- words_act1 %>% 
+  anti_join(stop_words, by = "word")
+
+words_act2_clean <- words_act2 %>% 
+  anti_join(stop_words, by = "word")
+```
+
+```{r}
+act1_nonstop_counts <- words_act1_clean %>% 
+  count(song, word)
+
+act2_nonstop_counts <- words_act2_clean %>% 
+  count(song, word)
+```
+
+## Find top 5 words from each song in each Act
+
+```{r}
+act1_top5_words <- act1_nonstop_counts %>% 
+  group_by(song) %>% 
+  arrange(-n) %>% 
+  slice(1:5) %>% 
+  ungroup()
+
+act2_top5_words <- act2_nonstop_counts %>% 
+  group_by(song) %>% 
+  arrange(-n) %>% 
+  slice(1:5) %>% 
+  ungroup()
+
+ggplot(data = act1_top5_words,
+       aes(x = n, y = word)) +
+  geom_col(fill = "blue") +
+  facet_wrap(~song, scales = "free")
+
+ggplot(data = act2_top5_words,
+       aes(x = n, y = word)) +
+  geom_col(fill = "blue") +
+  facet_wrap(~song, scales = "free")
+```
+
+## Word clouds of top 100 words in each act
+
+```{r}
+act1_top100 <- act1_nonstop_counts %>% 
+  arrange(-n) %>% 
+  slice(1:100)
+
+act2_top100 <- act2_nonstop_counts %>% 
+  arrange(-n) %>% 
+  slice(1:100)
+```
+
+```{r}
+act1_cloud <- ggplot(data = act1_top100,
+                     aes(label = word)) +
+  geom_text_wordcloud(aes(color = n, size = n),
+                      shape = "diamond") +
+  scale_size_area(max_size = 6) +
+  scale_color_gradientn(colors = c("darkgreen", "blue", "purple")) +
+  theme_minimal()
+
+act1_cloud
+
+act2_cloud <- ggplot(data = act2_top100,
+                     aes(label = word)) +
+  geom_text_wordcloud(aes(color = n, size = n),
+                      shape = "diamond") +
+  scale_color_gradientn(colors = c("darkgreen", "blue", "purple")) +
+  theme_minimal()
+
+act2_cloud
+```
+
+## Sentiment Analysis with "afinn"
+
+```{r}
+act1_afinn <- words_act1_clean %>% 
+  inner_join(get_sentiments("afinn"), by = "word")
+
+act2_afinn <- words_act2_clean %>% 
+  inner_join(get_sentiments("afinn"), by = "word")
+
+# get counts from each act
+
+act1_afinn_counts <- act1_afinn %>% 
+  count(song, value)
+
+act2_afinn_counts <- act2_afinn %>% 
+  count(song, value)
+
+# plot sentiments:
+ggplot(data = act1_afinn_counts,
+       aes(x = value, y = n)) +
+  geom_col() +
+  facet_wrap(~song)
+
+ggplot(data = act2_afinn_counts,
+       aes(x = value, y = n)) +
+  geom_col() +
+  facet_wrap(~song)
+
+# find mean afinn score by song per act and plot them
+act1_afinn_means <- act1_afinn %>% 
+  group_by(song) %>% 
+  summarize(mean_afinn = mean(value))
+
+act2_afinn_means <- act2_afinn %>% 
+  group_by(song) %>% 
+  summarize(mean_afinn = mean(value))
+
+ggplot(data = act1_afinn_means,
+       aes(x = fct_rev(factor(song)),
+           y = mean_afinn)) +
+  geom_col() +
+  coord_flip()
+
+ggplot(data = act2_afinn_means,
+       aes(fct_rev(factor(song)),
+           y = mean_afinn)) +
+  geom_col() +
+  coord_flip()
+```
+
+## Sentiment Analysis with "NRC" lexicon
+
+```{r}
+act1_nrc <- words_act1_clean %>% 
+  inner_join(get_sentiments("nrc"))
+
+act2_nrc <- words_act2_clean %>% 
+  inner_join(get_sentiments("nrc"))
+```
+
+```{r}
+act1_nrc_counts <- act1_nrc %>% 
+  count(song, sentiment)
+
+act2_nrc_counts <- act2_nrc %>% 
+  count(song, sentiment)
+
+ggplot(data = act1_nrc_counts,
+       aes(x = sentiment, y = n)) +
+  geom_col() +
+  facet_wrap(~song) +
+  coord_flip()
+
+ggplot(data = act2_nrc_counts,
+       aes(x = sentiment, y = n)) +
+  geom_col() +
+  facet_wrap(~song) +
+  coord_flip()
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
