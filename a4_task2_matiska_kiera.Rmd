@@ -1,8 +1,11 @@
 ---
-title: "Untitled"
+title: "Time Series Analysis of Fish Passage in Willamette Falls"
 author: "Kiera Matiska"
 date: "3/5/2022"
-output: html_document
+output: 
+  html_document: 
+    code_folding: hide
+    theme: united
 ---
 
 ```{r setup, include=FALSE}
@@ -17,6 +20,7 @@ library(lubridate)
 library(tsibble)
 library(feasts)
 library(kableExtra)
+library(patchwork)
 ```
 
 ## Read in Data
@@ -35,41 +39,92 @@ fish_ts <- fish_NA_0 %>%
 
 ## Time Series Visualizations {.tabset .tabset-fade}
 
-### Original Time Series {.tabset .tabset-fade}
-
-#### By Day
+### Original Time Series
 
 ```{r}
-ggplot(data = fish_ts,
+coho_plot <- ggplot(data = fish_ts,
        aes(x = date, y = coho)) +
-  geom_line()
+  geom_line(color = "dodgerblue3") + 
+  labs(title = "Daily Coho Salmon \nRecords in Willamette \nFalls from 2000-2010",
+       x = "Date",
+       y = "Individual Count") +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.background = element_rect(fill = "aliceblue"))
 
-ggplot(data = fish_ts,
+jack_plot <- ggplot(data = fish_ts,
        aes(x = date, y = jack_coho)) +
-  geom_line()
+  geom_line(color = "dodgerblue3") +
+  labs(title = "Daily Jack Coho Salmon \nRecords in Willamette \nFalls from 2000-2010",
+       x = "Date",
+       y = "Individual Count") +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.background = element_rect(fill = "aliceblue"))
 
-ggplot(data = fish_ts,
+steelhead_plot <- ggplot(data = fish_ts,
        aes(x = date, y = steelhead)) +
-  geom_line()
+  geom_line(color = "dodgerblue3") +
+  labs(title = "Daily Steelhead Trout \nRecords in Willamette \nFalls from 2000-2010",
+       x = "Date",
+       y = "Individual Count") +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.background = element_rect(fill = "aliceblue"))
+
+wrap_plots(coho_plot, jack_plot, steelhead_plot)
 ```
 
-#### By Month
+**Figure 1.** *In order from left to right:* (A) Daily Coho Salmon Records in Willamette Falls from 2000-2010; (B) Daily Jack Coho Salmon Records in Willamette Falls from 2000-2010; and (C) Daily Steelhead Trout Records in Willamette Falls from 2000-2010. These graphs illustrate the pattern of ladder use of each species during this 10-year time period.
+
+#### Summary
+
+- Both Coho And Jack Coho Salmon use the Fish Ladder later in the year; Steelhead Trout use it more consistently throughout the year.
+- Between these years, it appears that the Coho Salmon population has increased substantially based on the amount of individuals going through the fish ladder.
+- Between the years of 2006 an 2010 for Steelhead Trout, there was a substantial decrease in ladder use than in previous years by the species.
+
+### Seasonplots
 
 ```{r}
-fish_month <- fish_ts %>% 
-  index_by(yr_mo = ~yearmonth(.)) %>% 
-  summarize(monthly_coho = sum(coho),
-            monthly_jack_coho = sum(jack_coho),
-            monthly_steelhead = sum(steelhead))
+coho_season <- fish_ts %>% 
+  gg_season(y = coho) +
+  labs(title = "Seasonal Records of Coho \nSalmon in Willamette \nFalls from 2000-2010",
+       x = "Month",
+       y = "Individual Count") +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.background = element_rect(fill = "aliceblue"),
+        legend.position = "bottom") +
+  guides(color = guide_legend(nrow = 4))
 
-ggplot(data = fish_month) +
-  geom_line(aes(x = yr_mo, y = monthly_coho), color = "blue") +
-  geom_line(aes(x = yr_mo, y = monthly_jack_coho), color = "red") +
-  geom_line(aes(x = yr_mo, y = monthly_steelhead), color = "green") +
-  facet_wrap(~month(yr_mo, label = TRUE))
+jack_season <- fish_ts %>% 
+  gg_season(y = jack_coho) +
+  labs(title = "Seasonal Records of Jack \nCoho Salmon in Willamette \nFalls from 2000-2010",
+       x = "Month",
+       y = "Individual Count") +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.background = element_rect(fill = "aliceblue"),
+        legend.position = "bottom") +
+  guides(color = guide_legend(nrow = 4))
+
+steelhead_season <- fish_ts %>% 
+  gg_season(y = steelhead) +
+  labs(title = "Seasonal Records of Steelhead \nTrout in Willamette \nFalls from 2000-2010",
+       x = "Month",
+       y = "Individual Count") +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.background = element_rect(fill = "aliceblue"),
+        legend.position = "bottom") +
+  guides(color = guide_legend(nrow = 4))
+
+wrap_plots(coho_season, jack_season, steelhead_season)
 ```
 
-#### By Year
+**Figure 2.** *From left to right:* (A) Seasonal Records of Coho Salmon in Willamette Falls from 2000-2010; (B) Seasonal Records of Jack Coho Salmon in Willamette Falls from 2000-2010; and (C) Seasonal Records of Steelhead Trout in Willamette Falls from 2000-2010.
+
+#### Summary
+
+- Coho and Jack Coho Salmon are found using the ladder during autumn, with most recorded occurrences happen in October.
+- Steelhead Trout are found to use the ladder between the months of January-July and December each year. Most use of the ladder by this species comes in late spring and summer, between the months of April and July.
+- Steelhead Trout has the longest period of ladder use, followed by Coho Salmon. Jack Coho Salmon are found to be using the ladder the least.
+
+### Annual Counts {.tabset .tabset-fade}
 
 ```{r}
 fish_annual <- fish_ts %>% 
@@ -77,49 +132,7 @@ fish_annual <- fish_ts %>%
   summarize(annual_coho = sum(coho),
             annual_jack_coho = sum(jack_coho),
             annual_steelhead = sum(steelhead))
-
-ggplot(data = fish_annual) +
-  geom_line(aes(x = yearly, y = annual_coho), color = "blue") +
-  geom_line(aes(x = yearly, y = annual_jack_coho), color = "red") +
-  geom_line(aes(x = yearly, y = annual_steelhead), color = "green") +
-  scale_x_continuous(breaks = 2001:2010)
 ```
-
-- A finalized, static graph of adult passage for coho, jack coho, and steelhead salmon (you decide if these all occupy the same panel, or if they are in separate panels). Add a figure caption. Replace NA values with zero. 
-- 2 - 3 bullet points summarizing major patterns / notable trends in the salmon passage time series data
-
-### Seasonplots {.tabset .tabset-fade}
-
-#### Daily
-
-```{r}
-fish_ts %>% 
-  gg_season(y = coho)
-
-fish_ts %>% 
-  gg_season(y = jack_coho)
-
-fish_ts %>% 
-  gg_season(y = steelhead)
-```
-
-#### Monthly
-
-```{r}
-fish_month %>% 
-  gg_season(y = monthly_coho)
-
-fish_month %>% 
-  gg_season(y = monthly_jack_coho)
-
-fish_month %>% 
-  gg_season(y = monthly_steelhead)
-```
-
-- A finalized seasonplot for each species (coho, jack coho, steelhead) in its own panel. You can either facet_wrap/facet_grid, or use patchwork or cowplot, to make the figure. Add a caption.
-- Add 2 - 3 bullet points summarizing the major trends you see in the seasonplots.
-
-### Annual Counts {.tabset .tabset-fade}
 
 #### Coho Salmon
 
