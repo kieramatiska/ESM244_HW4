@@ -16,7 +16,7 @@ library(janitor)
 library(lubridate)
 library(tsibble)
 library(feasts)
-library(fable)
+library(kableExtra)
 ```
 
 ## Read in Data
@@ -25,11 +25,133 @@ library(fable)
 fish <- read_csv(here("data", "willamette_fish_passage.csv")) %>% 
   clean_names()
 
-fish_ts <- fish %>% 
+fish_NA_0 <- replace(fish, is.na(fish), 0)
+
+fish_ts <- fish_NA_0 %>% 
   mutate(date = mdy(date)) %>% 
-  as_tsibble(key = NULL, index = date)
+  as_tsibble(key = NULL, index = date) %>% 
+  select(project, date, coho, jack_coho, steelhead)
 ```
 
-## Exploratory time series visualization
+## Time Series Visualizations {.tabset .tabset-fade}
 
+### Original Time Series {.tabset .tabset-fade}
+
+#### By Day
+
+```{r}
+ggplot(data = fish_ts,
+       aes(x = date, y = coho)) +
+  geom_line()
+
+ggplot(data = fish_ts,
+       aes(x = date, y = jack_coho)) +
+  geom_line()
+
+ggplot(data = fish_ts,
+       aes(x = date, y = steelhead)) +
+  geom_line()
+```
+
+#### By Month
+
+```{r}
+fish_month <- fish_ts %>% 
+  index_by(yr_mo = ~yearmonth(.)) %>% 
+  summarize(monthly_coho = sum(coho),
+            monthly_jack_coho = sum(jack_coho),
+            monthly_steelhead = sum(steelhead))
+
+ggplot(data = fish_month) +
+  geom_line(aes(x = yr_mo, y = monthly_coho), color = "blue") +
+  geom_line(aes(x = yr_mo, y = monthly_jack_coho), color = "red") +
+  geom_line(aes(x = yr_mo, y = monthly_steelhead), color = "green") +
+  facet_wrap(~month(yr_mo, label = TRUE))
+```
+
+#### By Year
+
+```{r}
+fish_annual <- fish_ts %>% 
+  index_by(yearly = ~year(.)) %>% 
+  summarize(annual_coho = sum(coho),
+            annual_jack_coho = sum(jack_coho),
+            annual_steelhead = sum(steelhead))
+
+ggplot(data = fish_annual) +
+  geom_line(aes(x = yearly, y = annual_coho), color = "blue") +
+  geom_line(aes(x = yearly, y = annual_jack_coho), color = "red") +
+  geom_line(aes(x = yearly, y = annual_steelhead), color = "green") +
+  scale_x_continuous(breaks = 2001:2010)
+```
+
+- A finalized, static graph of adult passage for coho, jack coho, and steelhead salmon (you decide if these all occupy the same panel, or if they are in separate panels). Add a figure caption. Replace NA values with zero. 
+- 2 - 3 bullet points summarizing major patterns / notable trends in the salmon passage time series data
+
+### Seasonplots {.tabset .tabset-fade}
+
+#### Daily
+
+```{r}
+fish_ts %>% 
+  gg_season(y = coho)
+
+fish_ts %>% 
+  gg_season(y = jack_coho)
+
+fish_ts %>% 
+  gg_season(y = steelhead)
+```
+
+#### Monthly
+
+```{r}
+fish_month %>% 
+  gg_season(y = monthly_coho)
+
+fish_month %>% 
+  gg_season(y = monthly_jack_coho)
+
+fish_month %>% 
+  gg_season(y = monthly_steelhead)
+```
+
+- A finalized seasonplot for each species (coho, jack coho, steelhead) in its own panel. You can either facet_wrap/facet_grid, or use patchwork or cowplot, to make the figure. Add a caption.
+- Add 2 - 3 bullet points summarizing the major trends you see in the seasonplots.
+
+### Annual Counts {.tabset .tabset-fade}
+
+#### Coho Salmon
+
+```{r}
+fish_annual_coho <- fish_annual %>% 
+  select(yearly, annual_coho)
+
+fish_annual_coho %>% 
+  kbl()
+```
+
+#### Jack Coho Salmon
+
+```{r}
+fish_annual_jack <- fish_annual %>% 
+  select(yearly, annual_jack_coho)
+
+fish_annual_jack %>% 
+  kbl()
+```
+
+
+#### Steelhead Trout
+
+```{r}
+fish_annual_steelhead <- fish_annual %>% 
+  select(yearly, annual_steelhead)
+
+fish_annual_steelhead %>% 
+  kbl()
+```
+
+- A finalized figure of annual totals for fish passage, for each of the 3 species (coho, jack coho, steelhead). You decide if this is in a single panel, or multiple panels. Add a figure caption. 
+- Add 2 - 3 bullet points summarizing major trends you see in the annual totals by species from 2000 - 2010.
 
