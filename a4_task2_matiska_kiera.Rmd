@@ -5,11 +5,19 @@ date: "3/5/2022"
 output: 
   html_document: 
     code_folding: hide
-    theme: united
+    theme: lumen
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+![Willamette Falls from the I-205 rest area viewpoint on a July evening; Credit: Bryan Swan](data/Willamette_falls.jpeg)
+
+# Overview
+
+Willamette Falls, located on the Willamette River in Clackamas County, Oregon is the largest waterfall by volume in the United States with a 42 foot drop (Northwest Waterfall Survey). The waterfall halts migration patterns of different fish species that use the river, so a fish ladder was implemented to allow for further migration. This code will consist of a time series analysis looking at patterns of ladder use between three fish species. The three species being examined from the data set include Coho Salmon, Jack Coho Salmon, and Steelhead Trout. 
+
+![Map of Willamette Falls Fish Ladder](data/ladder_map.jpeg)
+
+```{r setup, include=TRUE, message = FALSE, warning = FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 
 # attach packages
 library(tidyverse)
@@ -22,8 +30,6 @@ library(feasts)
 library(kableExtra)
 library(patchwork)
 ```
-
-## Read in Data
 
 ```{r}
 fish <- read_csv(here("data", "willamette_fish_passage.csv")) %>% 
@@ -45,7 +51,7 @@ fish_ts <- fish_NA_0 %>%
 coho_plot <- ggplot(data = fish_ts,
        aes(x = date, y = coho)) +
   geom_line(color = "dodgerblue3") + 
-  labs(title = "Daily Coho Salmon \nRecords in Willamette \nFalls from 2000-2010",
+  labs(title = "Daily Coho Salmon \nRecords in Willamette \nFalls from 2001-2010",
        x = "Date",
        y = "Individual Count") +
   theme(plot.title = element_text(hjust = 0.5),
@@ -54,7 +60,7 @@ coho_plot <- ggplot(data = fish_ts,
 jack_plot <- ggplot(data = fish_ts,
        aes(x = date, y = jack_coho)) +
   geom_line(color = "dodgerblue3") +
-  labs(title = "Daily Jack Coho Salmon \nRecords in Willamette \nFalls from 2000-2010",
+  labs(title = "Daily Jack Coho Salmon \nRecords in Willamette \nFalls from 2001-2010",
        x = "Date",
        y = "Individual Count") +
   theme(plot.title = element_text(hjust = 0.5),
@@ -63,7 +69,7 @@ jack_plot <- ggplot(data = fish_ts,
 steelhead_plot <- ggplot(data = fish_ts,
        aes(x = date, y = steelhead)) +
   geom_line(color = "dodgerblue3") +
-  labs(title = "Daily Steelhead Trout \nRecords in Willamette \nFalls from 2000-2010",
+  labs(title = "Daily Steelhead Trout \nRecords in Willamette \nFalls from 2001-2010",
        x = "Date",
        y = "Individual Count") +
   theme(plot.title = element_text(hjust = 0.5),
@@ -85,33 +91,33 @@ wrap_plots(coho_plot, jack_plot, steelhead_plot)
 ```{r}
 coho_season <- fish_ts %>% 
   gg_season(y = coho) +
-  labs(title = "Seasonal Records of Coho \nSalmon in Willamette \nFalls from 2000-2010",
+  labs(title = "Seasonal Records \nof Coho Salmon in \nWillamette Falls \nfrom 2001-2010",
        x = "Month",
        y = "Individual Count") +
   theme(plot.title = element_text(hjust = 0.5),
         plot.background = element_rect(fill = "aliceblue"),
-        legend.position = "bottom") +
-  guides(color = guide_legend(nrow = 4))
+        legend.position = "none") +
+  guides(color = guide_legend(nrow = 5))
 
 jack_season <- fish_ts %>% 
   gg_season(y = jack_coho) +
-  labs(title = "Seasonal Records of Jack \nCoho Salmon in Willamette \nFalls from 2000-2010",
+  labs(title = "Seasonal Records of \nJack Coho Salmon \nin Willamette Falls \nfrom 2001-2010",
        x = "Month",
        y = "Individual Count") +
   theme(plot.title = element_text(hjust = 0.5),
         plot.background = element_rect(fill = "aliceblue"),
-        legend.position = "bottom") +
-  guides(color = guide_legend(nrow = 4))
+        legend.position = "none")
 
 steelhead_season <- fish_ts %>% 
   gg_season(y = steelhead) +
-  labs(title = "Seasonal Records of Steelhead \nTrout in Willamette \nFalls from 2000-2010",
+  labs(title = "Seasonal Records of \nSteelhead Trout in \nWillamette Falls \nfrom 2001-2010",
        x = "Month",
        y = "Individual Count") +
   theme(plot.title = element_text(hjust = 0.5),
         plot.background = element_rect(fill = "aliceblue"),
-        legend.position = "bottom") +
-  guides(color = guide_legend(nrow = 4))
+        legend.position = "right") +
+  guides(color = guide_legend(ncol = 1),
+         size = guide_legend(cex = 0.5))
 
 wrap_plots(coho_season, jack_season, steelhead_season)
 ```
@@ -124,7 +130,7 @@ wrap_plots(coho_season, jack_season, steelhead_season)
 - Steelhead Trout are found to use the ladder between the months of January-July and December each year. Most use of the ladder by this species comes in late spring and summer, between the months of April and July.
 - Steelhead Trout has the longest period of ladder use, followed by Coho Salmon. Jack Coho Salmon are found to be using the ladder the least.
 
-### Annual Counts {.tabset .tabset-fade}
+### Annual Counts
 
 ```{r}
 fish_annual <- fish_ts %>% 
@@ -134,37 +140,28 @@ fish_annual <- fish_ts %>%
             annual_steelhead = sum(steelhead))
 ```
 
-#### Coho Salmon
+**Figure 3.** Annual Totals of Three Different Fish Species in Willamette Falls between 2001 and 2010.
 
 ```{r}
-fish_annual_coho <- fish_annual %>% 
-  select(yearly, annual_coho)
-
-fish_annual_coho %>% 
-  kbl()
+fish_annual %>% 
+  kbl(col.names = c("Year",
+                    "Annual Totals of Coho Salmon Passage",
+                    "Annual Totals of Jack Coho Salmon Passage",
+                    "Annual Totals of Steelhead Trout Passage")) %>% 
+  kable_styling(position = "center",
+                full_width = TRUE,
+                bootstrap_options = "hover")
 ```
 
-#### Jack Coho Salmon
+#### Summary
 
-```{r}
-fish_annual_jack <- fish_annual %>% 
-  select(yearly, annual_jack_coho)
+- Coho Salmon passage populations experienced a major spike 2009: 4,048 (2008) to 25,298 (2009).
+- Jack Coho Salmon passage populations fluctuated a lot between 2001 and 2010 with a low of 164 individuals (2007) and a high of 2,971 individuals (2008).
+- Overall, Steelhead Trout passage populations stayed very high throughout this time period, however there was a major decline in individual passage between 2005 and 2009.
 
-fish_annual_jack %>% 
-  kbl()
-```
+## Citations
 
+- Data: DART Adult Passage Graphics and Text. Courtesy of U.S. Army Corps of Engineers, NWD and Chelan, Douglas, and Grant County PUDs, Yakima Klickitat Fisheries Project, Colville Tribes Fish & Wildlife (OBMEP), Oregon Department of Fish & Wildlife, Washington Department of Fish & Wildlife
+- Willamette Falls. Northwest Waterfall Survey. (2020, January 1). Retrieved March 19, 2022, from https://www.waterfallsnorthwest.com/waterfall/Willamette-Falls-4074 
 
-#### Steelhead Trout
-
-```{r}
-fish_annual_steelhead <- fish_annual %>% 
-  select(yearly, annual_steelhead)
-
-fish_annual_steelhead %>% 
-  kbl()
-```
-
-- A finalized figure of annual totals for fish passage, for each of the 3 species (coho, jack coho, steelhead). You decide if this is in a single panel, or multiple panels. Add a figure caption. 
-- Add 2 - 3 bullet points summarizing major trends you see in the annual totals by species from 2000 - 2010.
-
+## End Task
