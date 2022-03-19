@@ -32,12 +32,12 @@ library(patchwork)
 ```
 
 ```{r}
-fish <- read_csv(here("data", "willamette_fish_passage.csv")) %>% 
+fish <- read_csv(here("data", "willamette_fish_passage.csv")) %>% # read in data
   clean_names()
 
-fish_NA_0 <- replace(fish, is.na(fish), 0)
+fish_NA_0 <- replace(fish, is.na(fish), 0) # replace NA values with 0
 
-fish_ts <- fish_NA_0 %>% 
+fish_ts <- fish_NA_0 %>% # create a ts data frame
   mutate(date = mdy(date)) %>% 
   as_tsibble(key = NULL, index = date) %>% 
   select(project, date, coho, jack_coho, steelhead)
@@ -48,34 +48,34 @@ fish_ts <- fish_NA_0 %>%
 ### Original Time Series
 
 ```{r}
-coho_plot <- ggplot(data = fish_ts,
-       aes(x = date, y = coho)) +
-  geom_line(color = "dodgerblue3") + 
-  labs(title = "Daily Coho Salmon \nRecords in Willamette \nFalls from 2001-2010",
-       x = "Date",
-       y = "Individual Count") +
-  theme(plot.title = element_text(hjust = 0.5),
-        plot.background = element_rect(fill = "aliceblue"))
+coho_plot <- ggplot(data = fish_ts, # time series plot for coho salmon
+       aes(x = date, y = coho)) + # define parameters
+  geom_line(color = "dodgerblue3") + # define line graph and change color
+  labs(title = "Daily Coho Salmon \nRecords in Willamette \nFalls from 2001-2010", # add title
+       x = "Date", # change x-axis label
+       y = "Individual Count") + # change y-axis label
+  theme(plot.title = element_text(hjust = 0.5), # center text
+        plot.background = element_rect(fill = "aliceblue")) # color background
 
-jack_plot <- ggplot(data = fish_ts,
-       aes(x = date, y = jack_coho)) +
-  geom_line(color = "dodgerblue3") +
-  labs(title = "Daily Jack Coho Salmon \nRecords in Willamette \nFalls from 2001-2010",
-       x = "Date",
-       y = "Individual Count") +
-  theme(plot.title = element_text(hjust = 0.5),
-        plot.background = element_rect(fill = "aliceblue"))
+jack_plot <- ggplot(data = fish_ts, # time series plot for jack coho salmon
+       aes(x = date, y = jack_coho)) + # define parameters
+  geom_line(color = "dodgerblue3") + # define line graph and change color
+  labs(title = "Daily Jack Coho Salmon \nRecords in Willamette \nFalls from 2001-2010", # add title
+       x = "Date", # change x-axis label
+       y = "Individual Count") + # change y-axis label
+  theme(plot.title = element_text(hjust = 0.5), # center text
+        plot.background = element_rect(fill = "aliceblue")) # color background
 
-steelhead_plot <- ggplot(data = fish_ts,
-       aes(x = date, y = steelhead)) +
-  geom_line(color = "dodgerblue3") +
-  labs(title = "Daily Steelhead Trout \nRecords in Willamette \nFalls from 2001-2010",
-       x = "Date",
-       y = "Individual Count") +
-  theme(plot.title = element_text(hjust = 0.5),
-        plot.background = element_rect(fill = "aliceblue"))
+steelhead_plot <- ggplot(data = fish_ts, # time series plot for jack coho salmon
+       aes(x = date, y = steelhead)) + # define parameters
+  geom_line(color = "dodgerblue3") + # define line graph and change color
+  labs(title = "Daily Steelhead Trout \nRecords in Willamette \nFalls from 2001-2010", # add title
+       x = "Date", # change x-axis label
+       y = "Individual Count") + # change y-axis label
+  theme(plot.title = element_text(hjust = 0.5), # center title
+        plot.background = element_rect(fill = "aliceblue")) # color background
 
-wrap_plots(coho_plot, jack_plot, steelhead_plot)
+wrap_plots(coho_plot, jack_plot, steelhead_plot) # combine plots together into one figure
 ```
 
 **Figure 1.** *In order from left to right:* (A) Daily Coho Salmon Records in Willamette Falls from 2000-2010; (B) Daily Jack Coho Salmon Records in Willamette Falls from 2000-2010; and (C) Daily Steelhead Trout Records in Willamette Falls from 2000-2010. These graphs illustrate the pattern of ladder use of each species during this 10-year time period.
@@ -90,36 +90,35 @@ wrap_plots(coho_plot, jack_plot, steelhead_plot)
 
 ```{r}
 coho_season <- fish_ts %>% 
-  gg_season(y = coho) +
-  labs(title = "Seasonal Records \nof Coho Salmon in \nWillamette Falls \nfrom 2001-2010",
-       x = "Month",
-       y = "Individual Count") +
-  theme(plot.title = element_text(hjust = 0.5),
-        plot.background = element_rect(fill = "aliceblue"),
-        legend.position = "none") +
-  guides(color = guide_legend(nrow = 5))
+  gg_season(y = coho) + # define season plot
+  labs(title = "Seasonal Records \nof Coho Salmon in \nWillamette Falls \nfrom 2001-2010", # add title
+       x = "Month", # change x-axis label
+       y = "Individual Count") + # change y-axis label
+  theme(plot.title = element_text(hjust = 0.5), # center title
+        plot.background = element_rect(fill = "aliceblue"), # color background
+        legend.position = "none") # remove legend 
 
 jack_season <- fish_ts %>% 
-  gg_season(y = jack_coho) +
-  labs(title = "Seasonal Records of \nJack Coho Salmon \nin Willamette Falls \nfrom 2001-2010",
-       x = "Month",
-       y = "Individual Count") +
-  theme(plot.title = element_text(hjust = 0.5),
-        plot.background = element_rect(fill = "aliceblue"),
-        legend.position = "none")
+  gg_season(y = jack_coho) + # define season plot
+  labs(title = "Seasonal Records of \nJack Coho Salmon \nin Willamette Falls \nfrom 2001-2010", # add title
+       x = "Month", # change x-axis label
+       y = "Individual Count") + # change y-axis label
+  theme(plot.title = element_text(hjust = 0.5), # center text
+        plot.background = element_rect(fill = "aliceblue"), # color background
+        legend.position = "none") # remove legend
 
 steelhead_season <- fish_ts %>% 
-  gg_season(y = steelhead) +
-  labs(title = "Seasonal Records of \nSteelhead Trout in \nWillamette Falls \nfrom 2001-2010",
-       x = "Month",
-       y = "Individual Count") +
-  theme(plot.title = element_text(hjust = 0.5),
-        plot.background = element_rect(fill = "aliceblue"),
-        legend.position = "right") +
-  guides(color = guide_legend(ncol = 1),
-         size = guide_legend(cex = 0.5))
+  gg_season(y = steelhead) + # define season plot
+  labs(title = "Seasonal Records of \nSteelhead Trout in \nWillamette Falls \nfrom 2001-2010", # add title
+       x = "Month", # change x-axis label
+       y = "Individual Count") + # change y-axis label
+  theme(plot.title = element_text(hjust = 0.5), # center title
+        plot.background = element_rect(fill = "aliceblue"), # color background
+        legend.position = "right") + # change legend position
+  guides(color = guide_legend(ncol = 1), # set legend to have one column
+         size = guide_legend(cex = 0.5)) # set size of legend
 
-wrap_plots(coho_season, jack_season, steelhead_season)
+wrap_plots(coho_season, jack_season, steelhead_season) # combine plots into one figure
 ```
 
 **Figure 2.** *From left to right:* (A) Seasonal Records of Coho Salmon in Willamette Falls from 2000-2010; (B) Seasonal Records of Jack Coho Salmon in Willamette Falls from 2000-2010; and (C) Seasonal Records of Steelhead Trout in Willamette Falls from 2000-2010.
@@ -133,7 +132,8 @@ wrap_plots(coho_season, jack_season, steelhead_season)
 ### Annual Counts
 
 ```{r}
-fish_annual <- fish_ts %>% 
+# create new data frame with the total usage of each species on the ladder for each year
+fish_annual <- fish_ts %>%
   index_by(yearly = ~year(.)) %>% 
   summarize(annual_coho = sum(coho),
             annual_jack_coho = sum(jack_coho),
@@ -144,13 +144,13 @@ fish_annual <- fish_ts %>%
 
 ```{r}
 fish_annual %>% 
-  kbl(col.names = c("Year",
+  kbl(col.names = c("Year", # change column names
                     "Annual Totals of Coho Salmon Passage",
                     "Annual Totals of Jack Coho Salmon Passage",
                     "Annual Totals of Steelhead Trout Passage")) %>% 
-  kable_styling(position = "center",
-                full_width = TRUE,
-                bootstrap_options = "hover")
+  kable_styling(position = "center", # center table
+                full_width = TRUE, # expand width to cover whole page
+                bootstrap_options = "hover") # change color of row when hovered over
 ```
 
 #### Summary
